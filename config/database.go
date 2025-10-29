@@ -14,11 +14,12 @@ var DB *gorm.DB
 
 func ConnectDB() {
 	//DSN = Data Source Name
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=America/Bogota", os.Getenv("DB_HOST"),
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=America/Bogota",
+		os.Getenv("DB_HOST"),
 		os.Getenv("DSCBM_DB_USER"),
 		os.Getenv("DSCBM_DB_PASSWORD"),
 		os.Getenv("DSCBM_DB_NAME"),
-		os.Getenv("DB_PORT"))
+		os.Getenv("DSCBM_DB_PORT"))
 
 	//Conexión a base de datos
 	var err error
