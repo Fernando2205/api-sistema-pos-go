@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// SetupRoutes configura todas las rutas de la aplicación
 func SetupRoutes(db *gorm.DB) *gin.Engine {
 	router := gin.Default()
 
@@ -28,6 +29,11 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 		categorias := api.Group("/categoria")
 		{
 			categorias.GET("/all", categoriaHandler.GetAll)
+			categorias.GET("/:id", categoriaHandler.GetById)
+			categorias.POST("/save", categoriaHandler.Create)
+			categorias.PUT("update/:id", categoriaHandler.Update)
+			categorias.DELETE("delete/:id", categoriaHandler.Delete)
+			//categorias.PATCH("partial-update/:id", categoriaHandler.PartialUpdate)
 		}
 	}
 	return router
