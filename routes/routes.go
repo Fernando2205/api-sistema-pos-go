@@ -15,26 +15,39 @@ func SetupRoutes(db *gorm.DB) *gin.Engine {
 
 	//Inicializar repos
 	categoriaRepo := repositories.NewCategoriaRepository(db)
+	mesaRepo := repositories.NewMesaRepository(db)
 
 	//Inicializar servicios
 	categoriaService := services.NewCategoriaService(categoriaRepo)
+	mesaService := services.NewMesaService(mesaRepo)
 
 	//Inicilizar hanlders
 	categoriaHandler := handlers.NewCategoriaHandler(categoriaService)
+	mesaHandler := handlers.NewMesaHandler(mesaService)
 
 	//Grupo de rutas
 	api := router.Group("/api")
 	{
 		//Rutas categoria
-		categorias := api.Group("/categoria")
+		categorias := api.Group("/categorias")
 		{
-			categorias.GET("/all", categoriaHandler.GetAll)
+			categorias.GET("", categoriaHandler.GetAll)
 			categorias.GET("/:id", categoriaHandler.GetById)
-			categorias.POST("/save", categoriaHandler.Create)
-			categorias.PUT("update/:id", categoriaHandler.Update)
-			categorias.DELETE("delete/:id", categoriaHandler.Delete)
-			//categorias.PATCH("partial-update/:id", categoriaHandler.PartialUpdate)
+			categorias.POST("", categoriaHandler.Create)
+			categorias.PUT("/:id", categoriaHandler.Update)
+			categorias.DELETE("/:id", categoriaHandler.Delete)
 		}
+		//Rutas mesa
+		mesas := api.Group("/mesas")
+		{
+			mesas.GET("", mesaHandler.GetAll)
+			mesas.GET("/:id", mesaHandler.GetById)
+			mesas.POST("", mesaHandler.Create)
+			mesas.PUT("/:id", mesaHandler.Update)
+			mesas.PATCH("/:id", mesaHandler.PartialUpdate)
+			mesas.DELETE("/:id", mesaHandler.Delete)
+		}
+
 	}
 	return router
 }
