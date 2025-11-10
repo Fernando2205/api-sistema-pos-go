@@ -35,7 +35,8 @@ func (h *CategoriaHandler) GetById(c *gin.Context) {
 
 	categoria, err := h.service.GetById(id)
 	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		status := utils.GetHTTPStatusFromError(err)
+		c.IndentedJSON(status, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -50,7 +51,8 @@ func (h *CategoriaHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.service.Create(&categoria); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		status := utils.GetHTTPStatusFromError(err)
+		c.IndentedJSON(status, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -71,36 +73,13 @@ func (h *CategoriaHandler) Update(c *gin.Context) {
 	}
 
 	if err := h.service.Update(id, &categoria); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		status := utils.GetHTTPStatusFromError(err)
+		c.IndentedJSON(status, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.IndentedJSON(http.StatusOK, categoria)
 }
-
-/*
-func (h *CategoriaHandler) PartialUpdate(c *gin.Context) {
-	id, err := utils.GetIDParam(c)
-	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": utils.MsgInvalidID})
-		return
-	}
-
-	var campos map[string]interface{}
-	if err := c.BindJSON(&campos); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": utils.MsgInvalidData})
-		return
-	}
-
-	categoria, err := h.service.PartialUpdate(id, campos)
-	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.IndentedJSON(http.StatusOK, categoria)
-}
-*/
 
 func (h *CategoriaHandler) Delete(c *gin.Context) {
 	id, err := utils.GetIDParam(c)
@@ -110,9 +89,11 @@ func (h *CategoriaHandler) Delete(c *gin.Context) {
 	}
 
 	if err := h.service.Delete(id); err != nil {
-		c.IndentedJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		status := utils.GetHTTPStatusFromError(err)
+		c.IndentedJSON(status, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{"mensaje": utils.MsgDeleted})
+	c.Status(http.StatusNoContent)
 }
+
