@@ -50,13 +50,6 @@ func (r *CategoriaRepository) ExistsById(id int) (bool, error) {
 	return count > 0, err
 }
 
-// ExistsByNombre verifica si existe una categoría con el nombre dado
-func (r *CategoriaRepository) ExistsByNombre(nombre string) (bool, error) {
-	var count int64
-	err := r.DB.Model(&models.Categoria{}).Where("nombre = ?", nombre).Count(&count).Error
-	return count > 0, err
-}
-
 // Create inserta una nueva categoría en la base de datos
 func (r *CategoriaRepository) Create(categoria *models.Categoria) error {
 	return r.DB.Create(categoria).Error
