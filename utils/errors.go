@@ -10,5 +10,5 @@ var (
 	ErrDuplicateEntry    = errors.New("entrada duplicada")
 	ErrEmptyField        = errors.New("campo vacío")
 	ErrMaxLengthExceeded = errors.New("longitud máxima excedida")
-	ErrNilPointer        = errors.New("valor nulo no permitido")
+	ErrAlreadyExists     = errors.New("recurso ya existe")
 )
