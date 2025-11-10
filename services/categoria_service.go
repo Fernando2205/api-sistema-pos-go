@@ -60,8 +60,8 @@ func (s *CategoriaService) GetAll() ([]models.Categoria, error) {
 
 // GetById busca una categoría por su ID
 func (s *CategoriaService) GetById(id int) (*models.Categoria, error) {
-	if id <= 0 {
-		return nil, utils.ErrInvalidID
+	if err := utils.ValidateID(id); err != nil {
+		return nil, err
 	}
 
 	categoria, err := s.repo.FindById(id)
@@ -77,10 +77,6 @@ func (s *CategoriaService) GetById(id int) (*models.Categoria, error) {
 
 // Create crea una nueva categoría
 func (s *CategoriaService) Create(categoria *models.Categoria) error {
-	if categoria == nil {
-		return utils.ErrNilPointer
-	}
-
 	// Validar y normalizar nombre
 	nombreValidado, err := s.validateNombre(categoria.Nombre)
 	if err != nil {
@@ -98,8 +94,8 @@ func (s *CategoriaService) Create(categoria *models.Categoria) error {
 
 // Delete elimina una categoría por su ID con validaciones
 func (s *CategoriaService) Delete(id int) error {
-	if id <= 0 {
-		return utils.ErrInvalidID
+	if err := utils.ValidateID(id); err != nil {
+		return err
 	}
 
 	categoria, err := s.repo.FindById(id)
@@ -115,12 +111,8 @@ func (s *CategoriaService) Delete(id int) error {
 
 // Update actualiza completamente una categoría
 func (s *CategoriaService) Update(id int, categoria *models.Categoria) error {
-	if id <= 0 {
-		return utils.ErrInvalidID
-	}
-
-	if categoria == nil {
-		return utils.ErrNilPointer
+	if err := utils.ValidateID(id); err != nil {
+		return err
 	}
 
 	// Validar que existe
@@ -160,11 +152,11 @@ func (s *CategoriaService) Update(id int, categoria *models.Categoria) error {
 	}
 
 	// Validar que existe
-	existente, err := s.repo.ExistsById(id)
+	existe, err := s.repo.ExistsById(id)
 	if err != nil {
 		return nil, err
 	}
-	if !existente {
+	if !existe {
 		return nil, fmt.Errorf("%w: categoría con ID %d no encontrada", utils.ErrNotFound, id)
 	}
 
