@@ -45,7 +45,7 @@ func (s *MesaService) GetById(id int) (*models.Mesa, error) {
 	mesa, err := s.repo.FindById(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("%w: categoría con ID %d no encontrada", utils.ErrNotFound, id)
+			return nil, fmt.Errorf("%w: mesa con ID %d no encontrada", utils.ErrNotFound, id)
 		}
 		return nil, err
 	}
@@ -53,25 +53,16 @@ func (s *MesaService) GetById(id int) (*models.Mesa, error) {
 }
 
 func (s *MesaService) Create(mesa *models.Mesa) error {
-	//validar numero
-	if mesa.Numero <= 0 {
-		return fmt.Errorf("%w: el número de mesa debe ser mayor que cero", utils.ErrInvalidData)
-	}
-	if mesa.Capacidad <= 0 {
-		return fmt.Errorf("%w: la capacidad de la mesa debe ser mayor que cero", utils.ErrInvalidData)
-	}
-	//Validar que no exista otra mesa con el mismo numero
-	existe, err := s.repo.ExistByNumero(mesa.Numero)
+	// Validar que no exista otra mesa con el mismo numero
+	existe, err := s.repo.ExistsByNumero(mesa.Numero)
 	if err != nil {
 		return err
 	}
 	if existe {
 		return fmt.Errorf("%w: ya existe una mesa con el número %d", utils.ErrAlreadyExists, mesa.Numero)
 	}
-	if err := s.repo.Create(mesa); err != nil {
-		return err
-	}
-	return nil
+
+	return s.repo.Create(mesa)
 }
 
 func (s *MesaService) Delete(id int) error {
@@ -82,7 +73,7 @@ func (s *MesaService) Delete(id int) error {
 	mesa, err := s.repo.FindById(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("%w: categoría con ID %d no encontrada", utils.ErrNotFound, id)
+			return fmt.Errorf("%w: mesa con ID %d no encontrada", utils.ErrNotFound, id)
 		}
 		return err
 	}
@@ -94,23 +85,18 @@ func (s *MesaService) Update(id int, mesa *models.Mesa) error {
 		return err
 	}
 
-	if mesa.Numero <= 0 {
-		return fmt.Errorf("%w: el número de mesa debe ser mayor que cero", utils.ErrInvalidData)
-	}
-	if mesa.Capacidad <= 0 {
-		return fmt.Errorf("%w: la capacidad de la mesa debe ser mayor que cero", utils.ErrInvalidData)
-	}
-
 	existe, err := s.repo.ExistsById(id)
 	if err != nil {
 		return err
 	}
 	if !existe {
-		return fmt.Errorf("%w: categoría con ID %d no encontrada", utils.ErrNotFound, id)
+		return fmt.Errorf("%w: mesa con ID %d no encontrada", utils.ErrNotFound, id)
 	}
+
 	if err := s.ValidateNumeroUniqueness(mesa.Numero, id); err != nil {
 		return err
 	}
+
 	mesa.ID = id
 	return s.repo.Update(mesa)
 }
@@ -127,26 +113,15 @@ func (s *MesaService) PartialUpdate(id int, request *models.MesaPatch) (*models.
 	if !exist {
 		return nil, fmt.Errorf("%w: mesa con ID %d no encontrada", utils.ErrNotFound, id)
 	}
+
 	if request.Numero == nil && request.Capacidad == nil {
 		return nil, fmt.Errorf("%w: %s", utils.ErrInvalidData, utils.MsgNoFieldsToUpdate)
 	}
 
-	//Validar número si en envió
+	// Validar unicidad de número si fue enviado
 	if request.Numero != nil {
-		numero := *request.Numero
-		if numero < utils.MinNumeroMesa {
-			return nil, fmt.Errorf("%w: el número de mesa debe ser mayor a 0", utils.ErrInvalidData)
-		}
-		if err := s.ValidateNumeroUniqueness(numero, id); err != nil {
+		if err := s.ValidateNumeroUniqueness(*request.Numero, id); err != nil {
 			return nil, err
-		}
-
-	}
-	//Validar capacidad si en envió
-	if request.Capacidad != nil {
-		capacidad := *request.Capacidad
-		if capacidad < utils.MinCapacidadMesa {
-			return nil, fmt.Errorf("%w: la capacidad de la mesa debe ser mayor a 0", utils.ErrInvalidData)
 		}
 	}
 
@@ -156,5 +131,4 @@ func (s *MesaService) PartialUpdate(id int, request *models.MesaPatch) (*models.
 
 	// Retornar la mesa actualizada
 	return s.repo.FindById(id)
-
 }

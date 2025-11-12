@@ -38,7 +38,7 @@ func (r *MesaRepository) ExistsById(id int) (bool, error) {
 	return count > 0, err
 }
 
-func (r *MesaRepository) ExistByNumero(numero int) (bool, error) {
+func (r *MesaRepository) ExistsByNumero(numero int) (bool, error) {
 	var count int64
 	err := r.DB.Model(&models.Mesa{}).Where("numero = ?", numero).Count(&count).Error
 	return count > 0, err
