@@ -16,10 +16,13 @@ func main() {
 	}
 
 	// Conectar a base de datos
-	config.ConnectDB()
+	db, err := config.ConnectDB()
+	if err != nil {
+		log.Fatal("Error al conectar a la base de datos: ", err)
+	}
 
 	// Configurar rutas
-	router := routes.SetupRoutes(config.DB)
+	router := routes.SetupRoutes(db)
 
 	// Obtener puerto del entorno o usar valor por defecto
 	port := os.Getenv("PORT")
