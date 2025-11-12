@@ -16,10 +16,10 @@ func NewCategoriaRepository(db *gorm.DB) *CategoriaRepository {
 	return &CategoriaRepository{DB: db}
 }
 
-// FindByNombre busca una categoría por su nombre exacto
+// FindByNombre busca una categoría por su nombre (case-insensitive)
 func (r *CategoriaRepository) FindByNombre(nombre string) (*models.Categoria, error) {
 	var categoria models.Categoria
-	err := r.DB.Where("nombre = ?", nombre).First(&categoria).Error
+	err := r.DB.Where("LOWER(nombre) = LOWER(?)", nombre).First(&categoria).Error
 	return &categoria, err
 }
 
