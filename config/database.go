@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"gorm.io/driver/postgres"
@@ -10,9 +9,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var DB *gorm.DB
-
-func ConnectDB() {
+func ConnectDB() (*gorm.DB, error) {
 	//DSN = Data Source Name
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=America/Bogota",
 		os.Getenv("DB_HOST"),
@@ -22,13 +19,11 @@ func ConnectDB() {
 		os.Getenv("DSCBM_DB_PORT"))
 
 	//Conexión a base de datos
-	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
-
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	if err != nil {
-		log.Fatal("Error al conectar a la base de datos")
+		return nil, fmt.Errorf("error al conectar a la base de datos: %w", err)
 	}
 
 	fmt.Println("Conexión exitosa a base de datos")
-
+	return db, nil
 }
