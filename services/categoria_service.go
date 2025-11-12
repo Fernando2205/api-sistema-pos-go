@@ -21,33 +21,26 @@ func NewCategoriaService(repo *repositories.CategoriaRepository) *CategoriaServi
 	return &CategoriaService{repo: repo}
 }
 
-// validateNombre valida y normaliza el nombre de una categoría
-func (s *CategoriaService) validateNombre(nombre string) (string, error) {
-	// Normalizar nombre
-	nombre = strings.TrimSpace(nombre)
-
-	// Validar que no esté vacío
-	if nombre == "" {
-		return "", fmt.Errorf("%w: el nombre de la categoría es obligatorio", utils.ErrEmptyField)
-	}
-
-	// Validar longitud máxima
-	if len(nombre) > utils.MaxNombreCategoriaLength {
-		return "", fmt.Errorf("%w: el nombre no puede exceder %d caracteres", utils.ErrMaxLengthExceeded, utils.MaxNombreCategoriaLength)
-	}
-
-	return nombre, nil
+// normalizeNombre normaliza el nombre de una categoría (siempre en minúsculas)
+func (s *CategoriaService) normalizeNombre(nombre string) string {
+	return strings.TrimSpace(strings.ToLower(nombre))
 }
 
 // validateNombreUniqueness verifica que no exista otra categoría con el mismo nombre
 func (s *CategoriaService) validateNombreUniqueness(nombre string, excludeID int) error {
 	categoriaExistente, err := s.repo.FindByNombre(nombre)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+
+	// Si no se encontró, no hay conflicto
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil
+		}
 		return err
 	}
 
-	if categoriaExistente != nil && categoriaExistente.ID != excludeID {
-		return fmt.Errorf("%w: ya existe una categoría con ese nombre", utils.ErrDuplicateEntry)
+	// Si se encontró y no es el mismo registro que estamos actualizando
+	if categoriaExistente.ID != excludeID {
+		return fmt.Errorf("%w: ya existe una categoría con ese nombre", utils.ErrAlreadyExists)
 	}
 
 	return nil
@@ -77,15 +70,11 @@ func (s *CategoriaService) GetById(id int) (*models.Categoria, error) {
 
 // Create crea una nueva categoría
 func (s *CategoriaService) Create(categoria *models.Categoria) error {
-	// Validar y normalizar nombre
-	nombreValidado, err := s.validateNombre(categoria.Nombre)
-	if err != nil {
-		return err
-	}
-	categoria.Nombre = nombreValidado
+	// Normalizar nombre
+	categoria.Nombre = s.normalizeNombre(categoria.Nombre)
 
 	// Validar que no exista una categoría con el mismo nombre
-	if err := s.validateNombreUniqueness(nombreValidado, 0); err != nil {
+	if err := s.validateNombreUniqueness(categoria.Nombre, 0); err != nil {
 		return err
 	}
 
@@ -124,15 +113,11 @@ func (s *CategoriaService) Update(id int, categoria *models.Categoria) error {
 		return fmt.Errorf("%w: categoría con ID %d no encontrada", utils.ErrNotFound, id)
 	}
 
-	// Validar y normalizar nombre
-	nombreValidado, err := s.validateNombre(categoria.Nombre)
-	if err != nil {
-		return err
-	}
-	categoria.Nombre = nombreValidado
+	// Normalizar nombre
+	categoria.Nombre = s.normalizeNombre(categoria.Nombre)
 
 	// Validar que no exista otra categoría con el mismo nombre
-	if err := s.validateNombreUniqueness(nombreValidado, id); err != nil {
+	if err := s.validateNombreUniqueness(categoria.Nombre, id); err != nil {
 		return err
 	}
 
