@@ -42,3 +42,38 @@ func GetHTTPStatusFromError(err error) int {
 		return http.StatusInternalServerError
 	}
 }
+
+// GetErrorCodeFromStatus mapea códigos HTTP a códigos de error personalizados
+func GetErrorCodeFromStatus(status int) string {
+	switch status {
+	case http.StatusBadRequest:
+		return ErrCodeBadRequest
+	case http.StatusNotFound:
+		return ErrCodeNotFound
+	case http.StatusConflict:
+		return ErrCodeConflict
+	case http.StatusInternalServerError:
+		return ErrCodeInternalServerError
+	default:
+		return ErrCodeInternalServerError
+	}
+}
+
+// RespondWithError envía una respuesta de error estructurada
+func RespondWithError(c *gin.Context, status int, message string) {
+	errorCode := GetErrorCodeFromStatus(status)
+	errorResponse := NewErrorResponse(errorCode, message, c.Request.URL.Path)
+	c.JSON(status, errorResponse)
+}
+
+// RespondWithServiceError maneja errores de la capa de servicio
+func RespondWithServiceError(c *gin.Context, err error) {
+	status := GetHTTPStatusFromError(err)
+	RespondWithError(c, status, err.Error())
+}
+
+// RespondWithValidationError maneja errores de validación de Gin
+func RespondWithValidationError(c *gin.Context, err error) {
+	errorResponse := NewErrorResponse(ErrCodeValidationFailed, err.Error(), c.Request.URL.Path)
+	c.JSON(http.StatusBadRequest, errorResponse)
+}
